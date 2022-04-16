@@ -41,6 +41,7 @@ app.post('/search/market', (req, res) => {
 app.post('/indicator', (req, res) => {
 
     const config = req.body
+    console.log(req.body)
     switch(config.indicator) {
         case 'MCDX':
             indicator = 'PUB;3lEKXjKWycY5fFZRYYujEy8fxzRRUyF3'
@@ -65,34 +66,38 @@ app.post('/indicator', (req, res) => {
     const promise = new Promise((resolve, reject) => {
         TradingView.getIndicator(indicator).then(async (indic) => {
             console.log(`Loading '${indic.description}' study with setting ${JSON.stringify(config.setting)}...`);
-            // indic.setOption('length', 18)
 
-            Object.keys(config.setting).forEach((key) => {
-                console.log('Key : ' + key + ', Value : ' + config.setting[key])
-                indic.setOption(key, config.setting[key])
-                // indic.setOption('Length', 18)
-
-            })
-
-            const trend = new chart.Study(indic);
-            trend.onUpdate(() => {
-                const res = trend.periods.map(obj => {
-                    obj['time'] = moment.unix(obj['$time']).format('YYYY-MM-DD HH:mm:ss');
-                    return obj
-                })
-                // console.log('Prices periods:', chart.periods);
-                // console.log('Study periods:', res);
-                client.end();
-                resolve({
-                    'prices' : chart.periods,
-                    'study' : res
-                }); 
-            });
-        });
+            try{
+                Object.keys(config.setting).forEach((key) => {
+                    console.log('Key : ' + key + ', Value : ' + config.setting[key])
+                    indic.setOption(key, config.setting[key])
+                });
+                
+                const trend = new chart.Study(indic);
+                trend.onUpdate(() => {
+                    const res = trend.periods.map(obj => {
+                        obj['time'] = moment.unix(obj['$time']).format('YYYY-MM-DD HH:mm:ss');
+                        return obj
+                    })
+                    client.end();
+                    return resolve({
+                        'prices' : chart.periods,
+                        'study' : res
+                    }); 
+                });
+            } catch(err) {
+                console.log('[ERR]', err)
+                return reject(err.message);
+            }
+        })
     });
+
+
     promise.then((val)=>{
         res.status(200).json(val)
-    })
+    }).catch((err) => {
+        res.status(404).send(err)
+      });
 });
 
 app.listen(9000, () => {
