@@ -22,7 +22,40 @@
         "Length":30
     }
 }
-
+`POST /indicators`
+```json
+{
+  "market": "BINANCE:LUNAUSDT",
+  "timeframe": "1D",
+  "type": "HeikinAshi",
+  "range": 2,
+  "indicators": [
+    {
+      "indicator": "STD;EMA",
+      "setting": {
+        "Length": 26
+      }
+    },
+    {
+      "indicator": "STD;EMA",
+      "setting": {
+        "Length": 18
+      }
+    },
+    {
+      "indicator": "STD;EMA",
+      "setting": {
+        "Length": 30
+      }
+    },
+    {
+      "indicator": "STD;EMA",
+      "setting": {
+        "Length": 50
+      }
+    }
+  ]
+}
 ```
 `POST /search/indicator`
 ```json
