@@ -75,14 +75,23 @@ app.post('/indicator', (req, res) => {
                 
                 const trend = new chart.Study(indic);
                 trend.onUpdate(() => {
-                    const res = trend.periods.map(obj => {
-                        obj['time'] = moment.unix(obj['$time']).format('YYYY-MM-DD HH:mm:ss');
+                    const study = trend.periods.map(obj => {
+                        if (String(obj['$time']).includes(':')){
+                            obj['time'] = moment(obj['$time']).unix();
+                        } else {
+                            obj['time'] = obj['$time'];
+                            obj['$time'] = moment.unix(obj['time']).format('YYYY-MM-DD HH:mm:ss');
+                        }
+                        return obj
+                    })
+                    const periods = chart.periods.map(obj => {
+                        obj['$time'] = moment.unix(obj['time']).format('YYYY-MM-DD HH:mm:ss');
                         return obj
                     })
                     client.end();
                     return resolve({
-                        'prices' : chart.periods,
-                        'study' : res
+                        'prices' : periods,
+                        'study' : study
                     }); 
                 });
             } catch(err) {
